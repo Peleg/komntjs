@@ -1,10 +1,8 @@
-(function (w, d) {
+(function (d, CssPath) {
 
     'use strict';
 
-    w.Komnt || (w.Komnt = {});
-
-    var CommentHighlight = w.Komnt.CommentHighlight = function (anchorEl, range) {
+    var CommentHighlight = module.exports = function (anchorEl, range) {
         // Highlight range for the DOM element
         this.range = range;
 
@@ -13,7 +11,7 @@
             ? d.querySelector(anchorEl)
             : anchorEl;
 
-        this.cssPath = this.anchorEl && w.Komnt.CssPath.shortest(this.anchorEl);
+        this.cssPath = this.anchorEl && CssPath.shortest(this.anchorEl);
     };
 
     /**
@@ -91,6 +89,6 @@
     };
 
 })(
-    window,
-    document
+    document,
+    require('./CssPath')
 );

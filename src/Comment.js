@@ -1,14 +1,12 @@
-(function (w, d) {
+(function (d, CommentHighlight, CommentBody) {
 
     'use strict';
 
-    w.Komnt || (w.Komnt = {});
-
     var DELIMITER = ',';
 
-    var Comment = w.Komnt.Comment = function (element, range, text, hash) {
-        this.highlight = new w.Komnt.CommentHighlight(element, range);
-        this.body      = new w.Komnt.CommentBody(text);
+    var Comment = module.exports = function (element, range, text, hash) {
+        this.highlight = new CommentHighlight(element, range);
+        this.body      = new CommentBody(text);
         this._hash     = hash;
 
         this._isEditting = false;
@@ -116,6 +114,7 @@
 
 
 })(
-    window,
-    document
+    document,
+    require('./CommentHighlight'),
+    require('./CommentBody')
 );

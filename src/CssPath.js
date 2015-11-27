@@ -1,10 +1,8 @@
-(function (w, d) {
+(function (d) {
 
     'use strict';
 
-    w.Komnt || (w.Komnt = {});
-
-    var CssPath = w.Komnt.CssPath = function CssPath (element) {
+    var CssPath = module.exports = function CssPath (element) {
         this.element = element;
         this.path = this.full();
     };
@@ -229,4 +227,4 @@
             return this.value;
         }
     }
-})(window, document);
+})(document);

@@ -1,8 +1,8 @@
-(function (w, d) {
+(function (w, d, Comment) {
 
     'use strict';
 
-    w.Komnt || (w.Komnt = {});
+    var glob = (module && module.exports) || w.Komnt;
 
     var DELIMITER = ':';
     var REGEX = /(\?|^|&|#)komnt=(.*)(&|$)/;
@@ -10,7 +10,7 @@
     // Determing whether we can use anchor/hash
     var isHashAvailable = !location.hash || REGEX.test(location.hash);
 
-    var Komnt = w.Komnt.Komnt = function () {
+    var Komnt = glob = function () {
         [ 
             'mouseupHandler',
             'hideAllBodies',
@@ -29,7 +29,7 @@
     };
 
     Komnt.prototype.toggle = function () {
-        return this[w.Komnt._isEnabled ? 'disable' : 'enable']();
+        return this[Komnt._isEnabled ? 'disable' : 'enable']();
     };
 
     /**
@@ -38,22 +38,22 @@
     Komnt.prototype.enable = function () {
         this.showAllHighlights();
 
-        if (!w.Komnt._isEnabled) {
+        if (!Komnt._isEnabled) {
             d.addEventListener('mouseup', this.mouseupHandler);
             d.addEventListener('click', this.hideAllBodies);
         }
 
-        return w.Komnt._isEnabled = true;
+        return Komnt._isEnabled = true;
     };
 
     Komnt.prototype.disable = function () {
         this.hideAll();
-        if (w.Komnt._isEnabled) {
+        if (Komnt._isEnabled) {
             d.removeEventListener('mouseup', this.mouseupHandler);
             d.removeEventListener('click', this.hideAllBodies);
         }
 
-        return w.Komnt._isEnabled = false;
+        return Komnt._isEnabled = false;
     };
 
 
@@ -66,7 +66,7 @@
         if (matches && (matches = matches[2]))
             this.comments = matches
                 .split(DELIMITER)
-                .map(w.Komnt.Comment.fromUri.bind(this));
+                .map(Comment.fromUri.bind(this));
     };
 
     /**
@@ -101,7 +101,7 @@
      * Copies share link to clipboard
      */
     Komnt.prototype.shareLink = function () {
-        if (!w.Komnt._isEnabled)
+        if (!Komnt._isEnabled)
             return;
 
         this.updateUri();
@@ -176,7 +176,7 @@
     };
 
     Komnt.prototype.addComment = function (element, range) {
-        var comment = new w.Komnt.Comment(element, range);
+        var comment = new Comment(element, range);
         this.comments.push(comment
             .layout(this.bindCommentClicks)
             .show()
@@ -211,7 +211,7 @@
     };
 
     Komnt.prototype.showAllHighlights = function () {
-        if (w.Komnt._isEnabled)
+        if (Komnt._isEnabled)
             this.comments.forEach(function (comment) {
                 comment.highlight.show();
             });
@@ -232,7 +232,7 @@
     };
 
     Komnt.prototype.showAll = function () {
-        if (w.Komnt._isEnabled)
+        if (Komnt._isEnabled)
             this.comments.forEach(function (comment) {
                 comment.highlight.show();
                 comment.body.show();
@@ -252,5 +252,6 @@
 
 })(
     window,
-    document
+    document,
+    require('./Comment')
 );

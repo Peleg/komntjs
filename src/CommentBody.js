@@ -2,9 +2,7 @@
 
     'use strict';
 
-    w.Komnt || (w.Komnt = {});
-
-    var CommentBody = w.Komnt.CommentBody = function (body) {
+    var CommentBody = module.exports = function (body) {
         // Comment text body
         this.body = body || '';
     };
