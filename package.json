@@ -1,0 +1,24 @@
+{
+  "name": "komntjs",
+  "version": "1.0.0",
+  "description": "KomntJS let's you add comments to any webpage and share with your friends!",
+  "main": "dist/komnt.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pelegr/komntjs.git"
+  },
+  "keywords": [
+    "comment",
+    "annotate",
+    "highlight"
+  ],
+  "author": "Peleg Rosenthal <peleg@teacherspayteachers.com> (http://peleg.co)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pelegr/komntjs/issues"
+  },
+  "homepage": "https://github.com/pelegr/komntjs#readme"
+}
