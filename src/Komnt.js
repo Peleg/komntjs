@@ -2,15 +2,13 @@
 
     'use strict';
 
-    var glob = (module && module.exports) || w.Komnt;
-
     var DELIMITER = ':';
     var REGEX = /(\?|^|&|#)komnt=(.*)(&|$)/;
 
     // Determing whether we can use anchor/hash
     var isHashAvailable = !location.hash || REGEX.test(location.hash);
 
-    var Komnt = glob = function () {
+    w.Komnt = function Komnt () {
         [ 
             'mouseupHandler',
             'hideAllBodies',
