@@ -5,11 +5,15 @@
     <script src='../dist/komnt.js'></script>
     <script>
         window.onload = function () {
-            new Komnt().enable();
+          new Komnt().enable();
+          setTimeout(function () {
+            document.querySelector('div').innerHTML = 'blah'
+          }, 2000)
         };
     </script>
   </head>
   <body>
+    <div>HA</div>
     Lorem ipsum dolor sit amet, quo in utamur tamquam contentiones, alii
     suavitate constituam nec in, vix verear sapientem ex. Nec modus singulis
     cu. Eum ex voluptua epicurei repudiandae, graeci accusam ei vix. Per

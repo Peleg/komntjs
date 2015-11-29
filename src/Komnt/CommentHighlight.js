@@ -64,8 +64,7 @@
    * The text in the text node
    */
   CommentHighlight.prototype.underlyingText = function () {
-    return this._underlyingText ||
-      (this._underlyingText = this.textNode().textContent);
+      return this.textNode().textContent;
   };
 
   /**

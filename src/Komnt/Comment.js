@@ -10,6 +10,7 @@
     this._hash   = hash;
 
     this._isEditting = false;
+    this._isInjected = false;
   };
 
   /**
@@ -45,9 +46,12 @@
   };
 
   Comment.prototype.layout = function (cb) {
-    this.highlight.inject();
-    this.body.inject(this.highlight.element());
-    cb(this);
+    if (!this._isInjected) {
+      this.highlight.inject();
+      this.body.inject(this.highlight.element());
+      cb(this);
+      this._isInjected = true;
+    }
     return this;
   };
 

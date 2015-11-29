@@ -1,4 +1,4 @@
-(function (w, d, Comment) {
+(function (w, d, Util, Comment) {
 
   'use strict';
 
@@ -11,21 +11,33 @@
   var isHashAvailable = !location.hash || REGEX.test(location.hash);
 
   w.Komnt = function Komnt () {
-    [
+    Util.bind(
       'mouseupHandler',
       'hideAllBodies',
       'layoutComments',
-      'bindCommentClicks'
-    ].forEach(function (method) {
-      this[method] = this[method].bind(this);
-    }.bind(this));
+      'bindCommentClicks',
+      this
+    );
+
+    Util.haltDOMObservers(
+      'layoutComments',
+      'addComment',
+      'saveComment',
+      'editComment',
+      'removeComment',
+      'showComment',
+      'showAll',
+      'showAllHighlights',
+      'hideAllBodies',
+      'hideAll',
+      this
+    );
 
     this.comments = [];
-
     this.parseCommentsFromUri();
 
-    // TODO: deboune on DOM insertion instead of onload. Re-layout then as well.
-    setTimeout(this.layoutComments, 1000);
+    Util.onDOMChange(d.body, Util.debounce(this.layoutComments, 1000));
+    this.layoutComments();
   };
 
   Komnt.prototype.toggle = function () {
@@ -112,7 +124,7 @@
       d.removeEventListener('click', handler);
     };
     d.addEventListener('copy', handler);
-    d.execCommand("Copy", false, null);
+    d.execCommand('Copy', false, null);
   };
 
   /**
@@ -140,9 +152,9 @@
 
       if (selection.type === 'Range' && ~nodeIndex)
         return this.addComment(e.target, {
-          'nodeIndex' : nodeIndex,
-          'start'   : Math.min(selection.anchorOffset, selection.focusOffset),
-          'stop'    : Math.max(selection.anchorOffset, selection.focusOffset)
+          nodeIndex : nodeIndex,
+          start : Math.min(selection.anchorOffset, selection.focusOffset),
+          stop : Math.max(selection.anchorOffset, selection.focusOffset)
         });
     }
 
@@ -253,5 +265,6 @@
 })(
   window,
   document,
+  require('./util'),
   require('./Komnt/Comment')
 );

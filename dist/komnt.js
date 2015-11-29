@@ -51,7 +51,7 @@
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
-	(function (w, d, Comment) {
+	(function (w, d, Util, Comment) {
 
 	  'use strict';
 
@@ -64,21 +64,33 @@
 	  var isHashAvailable = !location.hash || REGEX.test(location.hash);
 
 	  w.Komnt = function Komnt () {
-	    [
+	    Util.bind(
 	      'mouseupHandler',
 	      'hideAllBodies',
 	      'layoutComments',
-	      'bindCommentClicks'
-	    ].forEach(function (method) {
-	      this[method] = this[method].bind(this);
-	    }.bind(this));
+	      'bindCommentClicks',
+	      this
+	    );
+
+	    Util.haltDOMObservers(
+	      'layoutComments',
+	      'addComment',
+	      'saveComment',
+	      'editComment',
+	      'removeComment',
+	      'showComment',
+	      'showAll',
+	      'showAllHighlights',
+	      'hideAllBodies',
+	      'hideAll',
+	      this
+	    );
 
 	    this.comments = [];
-
 	    this.parseCommentsFromUri();
 
-	    // TODO: deboune on DOM insertion instead of onload. Re-layout then as well.
-	    setTimeout(this.layoutComments, 1000);
+	    Util.onDOMChange(d.body, Util.debounce(this.layoutComments, 1000));
+	    this.layoutComments();
 	  };
 
 	  Komnt.prototype.toggle = function () {
@@ -165,13 +177,14 @@
 	      d.removeEventListener('click', handler);
 	    };
 	    d.addEventListener('copy', handler);
-	    d.execCommand("Copy", false, null);
+	    d.execCommand('Copy', false, null);
 	  };
 
 	  /**
 	   * Lays out all comments on the page
 	   */
 	  Komnt.prototype.layoutComments = function () {
+	    console.log('called')
 	    this.comments.forEach(function (comment) {
 	      // abort if el not on page or underlying text changed
 	      if (comment.highlight.anchorEl && !comment.hasTextChanged())
@@ -193,9 +206,9 @@
 
 	      if (selection.type === 'Range' && ~nodeIndex)
 	        return this.addComment(e.target, {
-	          'nodeIndex' : nodeIndex,
-	          'start'   : Math.min(selection.anchorOffset, selection.focusOffset),
-	          'stop'    : Math.max(selection.anchorOffset, selection.focusOffset)
+	          nodeIndex : nodeIndex,
+	          start : Math.min(selection.anchorOffset, selection.focusOffset),
+	          stop : Math.max(selection.anchorOffset, selection.focusOffset)
 	        });
 	    }
 
@@ -306,7 +319,8 @@
 	})(
 	  window,
 	  document,
-	  __webpack_require__(6)
+	  __webpack_require__(6),
+	  __webpack_require__(7)
 	);
 
 /***/ },
@@ -661,6 +675,106 @@
 
 /***/ },
 /* 6 */
+/***/ function(module, exports) {
+
+	(function () {
+
+	  'use strict';
+
+	  var Util = module.exports = {
+
+	    bind: function () {
+	      var args = [].slice.call(arguments);
+	      var context = args.pop();
+	      args.forEach(function (funcName) {
+	        context[funcName] = context[funcName].bind(context);
+	      });
+	    },
+
+	    debounce: function (func, ms) {
+	      this.debounce.timers || (this.debounce.timers = {});
+	      var timer = this.debounce.timers[func.toString()];
+	      var newFunc = function () {
+	        var args = arguments;
+	        clearTimeout(timer);
+	        timer = setTimeout(function () {
+	          func.apply(this, args);
+	          this._debounceCallback && this._debounceCallback();
+	        }, ms);
+	      };
+
+	      // add a place for adding a cb w/out messing w/ method arity
+	      newFunc._debounceCallback = false;
+
+	      return newFunc;
+	    },
+
+	    /**
+	     * This function takes a list of function names and the context for 'this'
+	     * as its last argument. It overwrites the method in the context to halt
+	     * DOM observation when they execute
+	     *
+	     * TODO: DOM Observer should be its own class
+	     */
+	    haltDOMObservers: function () {
+	      var args = [].slice.call(arguments);
+	      var context = args.pop();
+
+	      args.forEach(function (funcName) {
+	        var _func = context[funcName];
+	        context[funcName] = function () {
+	          Util.haltAllDOMObservers();
+	          if (typeof _func._debounceCallback !== 'undefined') {
+	            _func._debounceCallback = Util.resumeAllDOMObservers;
+	            return _func.apply(this, arguments);
+	          }
+	          var returnValue = _func.apply(this, arguments);
+	          Util.resumeAllDOMObservers();
+	          return returnValue;
+	        };
+	      });
+	    },
+
+	    onDOMChange: function (observed, func) {
+	      var observer = {
+	        observer: new MutationObserver(func),
+	        on: function () {
+	          this.observer.observe(observed, {
+	            characterData: true,
+	            childList: true,
+	            subtree: true
+	          });
+	        },
+	        off: function () {
+	          this.observer.disconnect();
+	        }
+	      };
+
+	      observer.on();
+
+	      this.onDOMChange.observers || (this.onDOMChange.observers = []);
+	      this.onDOMChange.observers.push(observer);
+	    },
+
+	    haltAllDOMObservers: function () {
+	      Util.onDOMChange.observers.forEach(function (obs) {
+	        obs.off();
+	      });
+	    },
+
+	    resumeAllDOMObservers: function () {
+	      Util.onDOMChange.observers.forEach(function (obs) {
+	        obs.on();
+	      });
+	    }
+
+	  };
+
+	})();
+
+
+/***/ },
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	(function (d, CommentHighlight, CommentBody) {
@@ -675,6 +789,7 @@
 	    this._hash   = hash;
 
 	    this._isEditting = false;
+	    this._isInjected = false;
 	  };
 
 	  /**
@@ -710,9 +825,12 @@
 	  };
 
 	  Comment.prototype.layout = function (cb) {
-	    this.highlight.inject();
-	    this.body.inject(this.highlight.element());
-	    cb(this);
+	    if (!this._isInjected) {
+	      this.highlight.inject();
+	      this.body.inject(this.highlight.element());
+	      cb(this);
+	      this._isInjected = true;
+	    }
 	    return this;
 	  };
 
@@ -780,13 +898,13 @@
 
 	})(
 	  document,
-	  __webpack_require__(7),
-	  __webpack_require__(9)
+	  __webpack_require__(8),
+	  __webpack_require__(10)
 	);
 
 
 /***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	(function (d, CssPath) {
@@ -855,8 +973,7 @@
 	   * The text in the text node
 	   */
 	  CommentHighlight.prototype.underlyingText = function () {
-	    return this._underlyingText ||
-	      (this._underlyingText = this.textNode().textContent);
+	      return this.textNode().textContent;
 	  };
 
 	  /**
@@ -881,12 +998,12 @@
 
 	})(
 	  document,
-	  __webpack_require__(8)
+	  __webpack_require__(9)
 	);
 
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports) {
 
 	(function (d) {
@@ -1122,7 +1239,7 @@
 
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports) {
 
 	(function (w, d) {
