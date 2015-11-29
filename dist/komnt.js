@@ -184,7 +184,6 @@
 	   * Lays out all comments on the page
 	   */
 	  Komnt.prototype.layoutComments = function () {
-	    console.log('called')
 	    this.comments.forEach(function (comment) {
 	      // abort if el not on page or underlying text changed
 	      if (comment.highlight.anchorEl && !comment.hasTextChanged())
@@ -714,7 +713,7 @@
 	     * as its last argument. It overwrites the method in the context to halt
 	     * DOM observation when they execute
 	     *
-	     * TODO: DOM Observer should be its own class
+	     * TODO: DOM Observer logic should be its own class
 	     */
 	    haltDOMObservers: function () {
 	      var args = [].slice.call(arguments);
